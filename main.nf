@@ -6,15 +6,15 @@ process COMBINE_GVCF {
     // !!! CombineGVCFs will be probably replaced with:
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
     
-    publishDir "${launchDir}/results/combine_vcf/", mode: 'copy'
+    publishDir "${launchDir}/results/combine_vcfs/", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
-    cpus '32'
+    cpus 32
     
     input:
       file gvcfs_list
 
     output:
-      path 'acgt_database'
+      path './acgt_database'
 
     script:
       """
