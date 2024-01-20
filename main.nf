@@ -6,7 +6,7 @@ process COMBINE_GVCF {
     // !!! CombineGVCFs will be probably replaced with:
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
     
-    publishDir "${launchDir}/results/combine_vcfs/", mode: 'copy'
+    publishDir "${launchDir}/results/combine_vcf", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     cpus 32
     
@@ -98,9 +98,9 @@ workflow {
     //input_ch = Channel.fromPath('/mnt2/shared/ACGT/join_VC/input/HaplotypeCaller_ACGT00{1,2}.vcf.gz').view()
 
     // execute workflow
-    COMBINE_GVCF(input_ch)
-    //comb_gvcf = COMBINE_GVCF(input_ch)
-    //join_gvcf = JOIN_GVCF(comb_gvcf)
+    //COMBINE_GVCF(input_ch)
+    comb_gvcf = COMBINE_GVCF(input_ch)
+    JOIN_GVCF(comb_gvcf)
     //var_recall_model = VAR_RECALL(join_vcf)
     //APPLY_RECALL(var_recall_model)
 }
