@@ -27,8 +27,7 @@ process COMBINE_GVCF {
        --sample-name-map $gvcfs_list \
        --L $params.interval \
        --tmp-dir=./ \
-       --reader-threads 32 \
-       --genomicsdb-shared-posixfs-optimizations
+       --reader-threads 32
       """
 
 }
