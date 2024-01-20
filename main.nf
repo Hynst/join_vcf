@@ -9,6 +9,7 @@ process COMBINE_GVCF {
     publishDir "${launchDir}/results/combine_vcf", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     cpus 32
+    memory 256.GB
     
     input:
       file gvcfs_list
@@ -22,11 +23,12 @@ process COMBINE_GVCF {
        gatk --java-options "-Xmx4g -Xms4g" \
        GenomicsDBImport \
        --genomicsdb-workspace-path ./acgt_database \
-       --batch-size 50 \
+       --batch-size 100 \
        --sample-name-map $gvcfs_list \
        --L $params.interval \
        --tmp-dir=./ \
-       --reader-threads 32
+       --reader-threads 32 \
+       --genomicsdb-shared-posixfs-optimizations
       """
 
 }
