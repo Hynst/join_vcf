@@ -14,7 +14,7 @@ process COMBINE_GVCF {
       file gvcfs_list
 
     output:
-      path '*'
+      path 'acgt_database'
 
     script:
       """
