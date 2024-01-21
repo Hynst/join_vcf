@@ -39,7 +39,6 @@ process COMBINE_GVCF {
 
     script:
       """
-      # create vcf files with sample id
       dir=`echo ${launchDir}/results/HC/`
       for i in $dir
       do
@@ -47,7 +46,6 @@ process COMBINE_GVCF {
         sed 's/ /\t/g' > samples.names
       done
 
-      # run gatk DB for GenotypeGVCFs
       gatk --java-options "-Xmx4g -Xms4g" \
         GenomicsDBImport \
         --genomicsdb-workspace-path ./acgt_database \
