@@ -1,7 +1,7 @@
 // According GATK best practices for ACGT:
 // https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-
 // plus VEP annotation
-process HAPLOTYPECALLER_GVCF{
+process HAPLOTYPECALLER_GVCF {
 
     publishDir "${launchDir}/results/HC", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
@@ -21,7 +21,6 @@ process HAPLOTYPECALLER_GVCF{
     -O ${sample}.g.vcf.gz \
     -ERC GVCF
     """    
-
 }
 
 process COMBINE_GVCF {
@@ -58,7 +57,6 @@ process COMBINE_GVCF {
         --tmp-dir=./ \
         --reader-threads 32
       """
-
 }
 
 process JOIN_GVCF {
