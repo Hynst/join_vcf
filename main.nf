@@ -43,7 +43,8 @@ process COMBINE_GVCF {
 
       """
       dir="${params.pubdir}/results/HC/"
-      for i in `ls \${params.pubdir}/results/HC/`
+      echo $dir
+      for i in `ls ${dir}`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="\$dir" 'BEGIN{print id, dir vcf}' | sed 's/ /\t/g' > samples.names
       done
