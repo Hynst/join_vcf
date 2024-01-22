@@ -47,6 +47,8 @@ process COMBINE_GVCF {
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
 
+      sleep infinity
+
       gatk --java-options "-Xmx4g -Xms4g" \
         GenomicsDBImport \
         --genomicsdb-workspace-path ./acgt_database \
