@@ -44,7 +44,7 @@ process COMBINE_GVCF {
       """
       for i in `ls ${params.pubdir}/results/HC/`
       do
-        awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="\$params.dir" 'BEGIN{print id, dir "/" vcf}' | sed 's/ /\t/g' > samples.names
+        awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.dir}" 'BEGIN{print id, dir "/" vcf}' | sed 's/ /\t/g' > samples.names
       done
 
       gatk --java-options "-Xmx4g -Xms4g" \
