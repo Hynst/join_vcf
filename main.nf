@@ -22,8 +22,9 @@ process HAPLOTYPECALLER_GVCF {
     -O ${sample}.g.vcf.gz \
     -ERC GVCF
 
-    mkdir ${launchDir}/results/HC
-    cp ${sample}.g.vcf.gz ${launchDir}/results/HC
+    echo ${launchDir}/results/HC
+    //mkdir ${launchDir}/results/HC
+    //cp ${sample}.g.vcf.gz ${launchDir}/results/HC
     """    
 }
 
