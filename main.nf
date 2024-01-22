@@ -3,7 +3,7 @@
 // plus VEP annotation
 process HAPLOTYPECALLER_GVCF {
 
-    publishDir "./results/HC", mode: 'copy'
+    publishDir "${params.pubdir}/results/HC", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     cpus 2
 
@@ -28,7 +28,7 @@ process HAPLOTYPECALLER_GVCF {
 process COMBINE_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
 
-    publishDir "./results/combine_vcf", mode: 'copy'
+    publishDir "${params.pubdir}/results/combine_vcf", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     cpus 32
     memory 256.GB
@@ -42,8 +42,8 @@ process COMBINE_GVCF {
     script:
 
       """
-      dir="./results/HC"
-      for i in `./results/HC`
+      dir="${params.pubdir}/results/HC/"
+      for i in `ls \${params.pubdir}/results/HC/`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="\$dir" 'BEGIN{print id, dir vcf}' | sed 's/ /\t/g' > samples.names
       done
@@ -62,7 +62,7 @@ process COMBINE_GVCF {
 process JOIN_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs
 
-    publishDir "./results/join_vcf/", mode: 'copy'
+    publishDir "${params.pubdir}/results/join_vcf/", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     
     input:
