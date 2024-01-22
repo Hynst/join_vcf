@@ -18,8 +18,12 @@ process HAPLOTYPECALLER_GVCF {
     gatk --java-options "-Xmx16g -Xms16g" HaplotypeCaller  \
     -R $params.ref \
     -I $bam \
+    -L chr10:18000-45500 \
     -O ${sample}.g.vcf.gz \
     -ERC GVCF
+
+    mkdir ${launchDir}/results/HC
+    cp ${sample}.g.vcf.gz ${launchDir}/results/HC
     """    
 }
 
@@ -42,7 +46,7 @@ process COMBINE_GVCF {
       dir = "${launchDir}/results/HC/"
 
       """
-      for i in $dir
+      for i in `ls \$dir`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="\$dir" 'BEGIN{print id, dir vcf}' | sed 's/ /\t/g' > samples.names
       done
