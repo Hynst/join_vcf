@@ -38,8 +38,10 @@ process COMBINE_GVCF {
       path './acgt_database'
 
     script:
+
+      dir = "${launchDir}/results/HC/"
+
       """
-      dir=`echo ${launchDir}/results/HC/`
       for i in $dir
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="\$dir" 'BEGIN{print id, dir vcf}' | sed 's/ /\t/g' > samples.names
@@ -126,7 +128,7 @@ workflow {
 
     // execute workflow
     vcf = HAPLOTYPECALLER_GVCF(input_ch)
-    comb_gvcf = COMBINE_GVCF(vcf)
+    comb_gvcf = COMBINE_GVCF(vcf.out)
     JOIN_GVCF(comb_gvcf)
     //var_recall_model = VAR_RECALL(join_vcf)
     //APPLY_RECALL(var_recall_model)
