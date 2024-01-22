@@ -23,8 +23,6 @@ process HAPLOTYPECALLER_GVCF {
     -ERC GVCF
 
     echo ${launchDir}/results/HC
-    //mkdir ${launchDir}/results/HC
-    //cp ${sample}.g.vcf.gz ${launchDir}/results/HC
     """    
 }
 
