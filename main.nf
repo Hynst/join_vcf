@@ -12,7 +12,6 @@ process HAPLOTYPECALLER_GVCF {
 
     output:
       path '*.g.vcf.gz'
-      val './results/HC'
 
     script:
     """
@@ -35,7 +34,7 @@ process COMBINE_GVCF {
     memory 256.GB
 
     input:
-      val vcf
+      path vcf_list
 
     output:
       path './acgt_database'
@@ -43,7 +42,8 @@ process COMBINE_GVCF {
     script:
 
       """
-      for i in `ls \$dir`
+      dir="./results/HC"
+      for i in `./results/HC`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="\$dir" 'BEGIN{print id, dir vcf}' | sed 's/ /\t/g' > samples.names
       done
