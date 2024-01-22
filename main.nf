@@ -15,7 +15,7 @@ process HAPLOTYPECALLER_GVCF {
 
     script:
     """
-    gatk --java-options "-Xmx4g" HaplotypeCaller  \
+    gatk --java-options "-Xmx16g -Xms16g" HaplotypeCaller  \
     -R $params.ref \
     -I $bam \
     -O ${sample}.g.vcf.gz \
