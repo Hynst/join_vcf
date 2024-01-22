@@ -129,7 +129,8 @@ workflow {
 
     // execute workflow
     vcf = HAPLOTYPECALLER_GVCF(input_ch)
-    comb_gvcf = COMBINE_GVCF(vcf)
+    batch_vcf = vcf.collect()
+    comb_gvcf = COMBINE_GVCF(batch_vcf)
     JOIN_GVCF(comb_gvcf)
     //var_recall_model = VAR_RECALL(join_vcf)
     //APPLY_RECALL(var_recall_model)
