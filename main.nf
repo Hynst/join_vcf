@@ -11,7 +11,7 @@ process HAPLOTYPECALLER_GVCF {
       tuple val(sample), val(bam), val(bai)
 
     output:
-      path '*.g.vcf.gz'
+      path '*'
 
     script:
     """
@@ -42,12 +42,10 @@ process COMBINE_GVCF {
     script:
 
       """
-      for i in `ls ${params.pubdir}/results/HC/`
+      for i in `ls ${params.pubdir}/results/HC/*gz`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
-
-      sleep infinity
 
       gatk --java-options "-Xmx4g -Xms4g" \
         GenomicsDBImport \
