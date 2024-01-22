@@ -35,7 +35,7 @@ process COMBINE_GVCF {
     memory 256.GB
 
     input:
-      val from vcf
+      val vcf
 
     output:
       path './acgt_database'
