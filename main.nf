@@ -28,40 +28,6 @@ process HAPLOTYPECALLER_GVCF {
 
 process COMBINE_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
-    
-    publishDir "./results/combine_vcf", mode: 'copy'
-    container 'broadinstitute/gatk:4.1.3.0'
-    cpus 32
-    memory 256.GB
-    
-    input:
-      val from vcfprocess HAPLOTYPECALLER_GVCF {
-
-    publishDir "./results/HC", mode: 'copy'
-    container 'broadinstitute/gatk:4.1.3.0'
-    cpus 2
-
-    input:
-      tuple val(sample), val(bam), val(bai)
-
-    output:
-      path '*.g.vcf.gz'
-      val './results/HC'
-
-    script:
-    """
-    gatk --java-options "-Xmx16g -Xms16g" HaplotypeCaller  \
-    -R $params.ref \
-    -I $bam \
-    -L chr10:18000-45500 \
-    -O ${sample}.g.vcf.gz \
-    -ERC GVCF
-
-    """
-}
-
-process COMBINE_GVCF {
-    // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
 
     publishDir "./results/combine_vcf", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
@@ -76,63 +42,6 @@ process COMBINE_GVCF {
 
     script:
 
-      dir = "${launchDir}/results/HC/"
-
-      """
-      for i in `ls \$dir`
-      do
-        awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="\$dir" 'BEGIN{print id, dir vcf}' | sed 's/ /\t/g' > samples.names
-      done
-
-      gatk --java-options "-Xmx4g -Xms4g" \
-        GenomicsDBImport \
-        --genomicsdb-workspace-path ./acgt_database \
-        --batch-size 100 \
-        --sample-name-map samples.names \
-        --L $params.interval \
-        --tmp-dir=./ \      val from vcfprocess HAPLOTYPECALLER_GVCF {
-
-    publishDir "./results/HC", mode: 'copy'
-    container 'broadinstitute/gatk:4.1.3.0'
-    cpus 2
-
-    input:
-      tuple val(sample), val(bam), val(bai)
-
-    output:
-      path '*.g.vcf.gz'
-      val './results/HC'
-
-    script:
-    """
-    gatk --java-options "-Xmx16g -Xms16g" HaplotypeCaller  \
-    -R $params.ref \
-    -I $bam \
-    -L chr10:18000-45500 \
-    -O ${sample}.g.vcf.gz \
-    -ERC GVCF
-
-    """
-}
-
-process COMBINE_GVCF {
-    // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
-
-    publishDir "./results/combine_vcf", mode: 'copy'
-    container 'broadinstitute/gatk:4.1.3.0'
-    cpus 32
-    memory 256.GB
-
-    input:
-      val './results/HC' from vcf
-
-    output:
-      path './acgt_database'
-
-    script:
-
-      dir = "${launchDir}/results/HC/"
-
       """
       for i in `ls \$dir`
       do
@@ -146,7 +55,8 @@ process COMBINE_GVCF {
         --sample-name-map samples.names \
         --L $params.interval \
         --tmp-dir=./ \
-
+        --reader-threads 32
+      """
 }
 
 process JOIN_GVCF {
