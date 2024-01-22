@@ -74,7 +74,7 @@ process JOIN_GVCF {
       """
       gatk --java-options "-Xmx4g" GenotypeGVCFs \
       -R $params.ref \
-      -V gendb://./results/combine_vcf/acgt_database \
+      -V gendb://${params.pubdir}/results/combine_vcf/acgt_database \
       -O ACGT_joint.vcf.gz
       """
 }
