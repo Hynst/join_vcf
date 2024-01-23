@@ -83,7 +83,7 @@ process JOIN_GVCF {
 process VAR_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
 
-    publishDir "${launchDir}/results/filtered/", mode: 'copy'
+    publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     
     input:
@@ -97,10 +97,10 @@ process VAR_RECALL {
       gatk VariantRecalibrator \
         -R $params.ref \
         -V ACGT_joint.vcf.gz \
-        --resource hapmap,known=false,training=true,truth=true,prior=15.0:${params.annot}/hapmap_3.3.hg38.vcf.gz \
-        --resource omni,known=false,training=true,truth=false,prior=12.0:${params.annot}/1000G_omni2.5.hg38.vcf.gz \
-        --resource 1000G,known=false,training=true,truth=false,prior=10.0:${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
-        --resource dbsnp,known=true,training=false,truth=false,prior=2.0:${params.annot}/dbsnp_146.hg38.vcf.gz \
+        --resource:hapmap,known=false,training=true,truth=true,prior=15.0 ${params.annot}/hapmap_3.3.hg38.vcf.gz \
+        --resource:omni,known=false,training=true,truth=false,prior=12.0 ${params.annot}/1000G_omni2.5.hg38.vcf.gz \
+        --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
+        --resource:dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.annot}/dbsnp_146.hg38.vcf.gz \
         -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
         -mode SNP \
         -O ACGT_variants.recal \
@@ -112,7 +112,7 @@ process VAR_RECALL {
 process APPLY_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360037056912-ApplyVQSR
 
-    publishDir "${launchDir}/results/filtered/", mode: 'copy'
+    publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     
     input:
