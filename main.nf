@@ -96,7 +96,7 @@ process VAR_RECALL {
       """
       gatk VariantRecalibrator \
         -R $params.ref \
-        -V $genotype_gvcf \
+        -V ACGT_joint.vcf.gz \
         --resource hapmap,known=false,training=true,truth=true,prior=15.0:${params.annot}/hapmap_3.3.hg38.vcf.gz \
         --resource omni,known=false,training=true,truth=false,prior=12.0:${params.annot}/1000G_omni2.5.hg38.vcf.gz \
         --resource 1000G,known=false,training=true,truth=false,prior=10.0:${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
