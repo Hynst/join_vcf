@@ -19,10 +19,9 @@ process HAPLOTYPECALLER_GVCF {
     gatk --java-options "-Xmx16g -Xms16g" HaplotypeCaller  \
     -R $params.ref \
     -I $bam \
-    -L chr10:18000-45500 \
+    -L chr1:55299-73805799 \
     -O ${sample}.g.vcf.gz \
     -ERC GVCF
-
     """    
 }
 
