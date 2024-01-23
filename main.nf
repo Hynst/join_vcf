@@ -126,7 +126,6 @@ process APPLY_RECALL {
         -R $params.ref \
         -V ${params.pubdir}/results/join_vcf/ACGT_joint.vcf.gz \
         -O ACGT_variants_recall.vcf.gz \
-        --ts_filter_level 99.0 \
         --tranches-file ACGT_variants.tranches \
         --recal-file ACGT_variants.recal \
         -mode SNP
