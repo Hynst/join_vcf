@@ -1,6 +1,7 @@
 // According GATK best practices for ACGT:
 // https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-
 // plus VEP annotation
+
 process HAPLOTYPECALLER_GVCF {
 
     publishDir "${params.pubdir}/results/HC", mode: 'copy'
@@ -86,16 +87,25 @@ process VAR_RECALL {
     container 'broadinstitute/gatk:4.1.3.0'
     
     input:
-      file joint_gvcf
+      file genotype_gvcf
 
     output:
       path '*'
 
     script:
       """
-      
-
-
+      gatk VariantRecalibrator \
+        -R $params.ref \
+        -V $genotype_gvcf \
+        --resource hapmap,known=false,training=true,truth=true,prior=15.0:${params.annot}/hapmap_3.3.hg38.vcf.gz \
+        --resource omni,known=false,training=true,truth=false,prior=12.0:${params.annot}/1000G_omni2.5.hg38.vcf.gz \
+        --resource 1000G,known=false,training=true,truth=false,prior=10.0:${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
+        --resource dbsnp,known=true,training=false,truth=false,prior=2.0:${params.annot}/dbsnp_146.hg38.vcf.gz \
+        -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
+        -mode SNP \
+        -O ACGT_variants.recal \
+        --tranches-file ACGT_variants.tranches \
+        --rscript-file ACGT_variants.plots.R
       """
 }
 
@@ -113,9 +123,14 @@ process APPLY_RECALL {
 
     script:
       """
-      
-
-
+       gatk ApplyVQSR \
+        -R $params.ref \
+        -V ${params.pubdir}/results/join_vcf/ACGT_joint.vcf.gz \
+        -O ACGT_variants_recall.vcf.gz \
+        --ts_filter_level 99.0 \
+        --tranches-file ACGT_variants.tranches \
+        --recal-file ACGT_variants.recal \
+        -mode SNP
       """
 }
 
@@ -130,9 +145,9 @@ workflow {
     vcf = HAPLOTYPECALLER_GVCF(input_ch)
     batch_vcf = vcf.collect()
     comb_gvcf = COMBINE_GVCF(batch_vcf)
-    JOIN_GVCF(comb_gvcf)
-    //var_recall_model = VAR_RECALL(join_vcf)
-    //APPLY_RECALL(var_recall_model)
+    genotypegvcf = JOIN_GVCF(comb_gvcf)
+    var_recall_model = VAR_RECALL(genotypegvcf)
+    APPLY_RECALL(var_recall_model)
 }
 
 def returnFile(it) {
