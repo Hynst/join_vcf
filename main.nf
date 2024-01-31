@@ -7,6 +7,7 @@ process HAPLOTYPECALLER_GVCF {
     publishDir "${params.pubdir}/results/HC", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
     cpus 2
+    memory 22.GB
 
     input:
       tuple val(sample), val(bam), val(bai)
@@ -16,11 +17,12 @@ process HAPLOTYPECALLER_GVCF {
 
     script:
     """
-    gatk --java-options "-Xmx16g -Xms16g" HaplotypeCaller  \
+    gatk --java-options "-Xmx22g -Xms22g -XX:ParallelGCThreads=2" HaplotypeCaller  \
     -R $params.ref \
     -I $bam \
-    -L chr1:55299-73805799 \
+    -L $params.interval \
     -O ${sample}.g.vcf.gz \
+    --min-base-quality-score 20 \
     -ERC GVCF
     """    
 }
@@ -30,8 +32,8 @@ process COMBINE_GVCF {
 
     publishDir "${params.pubdir}/results/combine_vcf", mode: 'copy'
     container 'broadinstitute/gatk:4.1.3.0'
-    cpus 32
-    memory 256.GB
+    cpus 2
+    memory 10.GB
 
     input:
       path vcf_list
@@ -47,7 +49,7 @@ process COMBINE_GVCF {
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
 
-      gatk --java-options "-Xmx4g -Xms4g" \
+      gatk --java-options "-Xmx4g -Xms4g -XX:ParallelGCThreads=2" \
         GenomicsDBImport \
         --genomicsdb-workspace-path ./acgt_database \
         --batch-size 100 \
@@ -72,7 +74,7 @@ process JOIN_GVCF {
 
     script:
       """
-      gatk --java-options "-Xmx4g" GenotypeGVCFs \
+      gatk --java-options "-Xms4g -Xmx4g -XX:ParallelGCThreads=2" GenotypeGVCFs \
       -R $params.ref \
       -V gendb://${params.pubdir}/results/combine_vcf/acgt_database \
       -O ACGT_joint.vcf.gz
@@ -93,7 +95,7 @@ process VAR_RECALL {
 
     script:
       """
-      gatk VariantRecalibrator \
+      gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" VariantRecalibrator \
         -R $params.ref \
         -V ACGT_joint.vcf.gz \
         --resource:hapmap,known=false,training=true,truth=true,prior=15.0 ${params.annot}/hapmap_3.3.hg38.vcf.gz \
@@ -122,7 +124,7 @@ process APPLY_RECALL {
 
     script:
       """
-       gatk ApplyVQSR \
+       gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" ApplyVQSR \
         -R $params.ref \
         -V ${params.pubdir}/results/join_vcf/ACGT_joint.vcf.gz \
         -O ACGT_variants_recall.vcf.gz \
