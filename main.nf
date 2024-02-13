@@ -35,8 +35,8 @@ process COMBINE_GVCF {
     cpus 2
     memory 10.GB
 
-    input:
-      path vcf_list
+    //input:
+    //  path vcf_list
 
     output:
       path './acgt_database'
@@ -136,15 +136,15 @@ process APPLY_RECALL {
 
 workflow {
     // create channel
-    input_ch = Channel.empty()
-    tsv = file(params.input)
-    input_ch = extractFastq(tsv)
+    //input_ch = Channel.empty()
+    //tsv = file(params.input)
+    //input_ch = extractFastq(tsv)
     //input_ch = Channel.fromPath('/mnt2/shared/ACGT/join_VC/input/HaplotypeCaller_ACGT00{1,2}.vcf.gz').view()
 
     // execute workflow
-    vcf = HAPLOTYPECALLER_GVCF(input_ch)
-    batch_vcf = vcf.collect()
-    comb_gvcf = COMBINE_GVCF(batch_vcf)
+    //vcf = HAPLOTYPECALLER_GVCF(input_ch)
+    //batch_vcf = vcf.collect()
+    comb_gvcf = COMBINE_GVCF()
     genotypegvcf = JOIN_GVCF(comb_gvcf)
     var_recall_model = VAR_RECALL(genotypegvcf)
     APPLY_RECALL(var_recall_model)
