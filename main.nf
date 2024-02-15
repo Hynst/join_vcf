@@ -52,7 +52,8 @@ process COMBINE_GVCF {
       gatk --java-options "-Xmx4g -Xms4g -XX:ParallelGCThreads=2" \
         GenomicsDBImport \
         --genomicsdb-workspace-path ./acgt_database \
-        --batch-size 100 \
+        --batch-size 20 \
+        --consolidate \
         --sample-name-map samples.names \
         --L $params.interval \
         --tmp-dir=./ \
