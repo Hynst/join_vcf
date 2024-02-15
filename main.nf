@@ -58,7 +58,7 @@ process COMBINE_GVCF {
         --merge-input-intervals \
         --sample-name-map samples.names \
         --L $params.interval \
-        --tmp-dir=./ \
+        --tmp-dir . \
         --reader-threads 8
       """
 }
