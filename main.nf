@@ -31,8 +31,8 @@ process COMBINE_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
 
     publishDir "${params.pubdir}/results/combine_vcf", mode: 'copy'
-    container 'broadinstitute/gatk:4.1.3.0'
-    cpus 2
+    container 'broadinstitute/gatk:4.2.3.0'
+    cpus 16
     memory 10.GB
 
     //input:
@@ -52,12 +52,14 @@ process COMBINE_GVCF {
       gatk --java-options "-Xmx4g -Xms4g -XX:ParallelGCThreads=2" \
         GenomicsDBImport \
         --genomicsdb-workspace-path ./acgt_database \
-        --batch-size 20 \
+        --batch-size 50 \
         --consolidate \
+        --genomicsdb-shared-posixfs-optimizations \
+        --merge-input-intervals \
         --sample-name-map samples.names \
         --L $params.interval \
         --tmp-dir=./ \
-        --reader-threads 32
+        --reader-threads 8
       """
 }
 
