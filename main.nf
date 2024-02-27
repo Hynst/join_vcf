@@ -32,7 +32,7 @@ process COMBINE_GVCF {
 
     publishDir "${params.pubdir}/results/combine_vcf", mode: 'copy'
     container 'broadinstitute/gatk:4.2.3.0'
-    cpus 16
+    cpus 2
     memory 10.GB
 
     //input:
@@ -58,7 +58,7 @@ process COMBINE_GVCF {
         --sample-name-map samples.names \
         --L $params.interval \
         --tmp-dir . \
-        --reader-threads 8
+        --reader-threads 2
       """
 }
 
