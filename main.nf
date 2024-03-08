@@ -70,7 +70,7 @@ process JOIN_GVCF {
     
     input:
       file comb_gvcf
-      val(reg) from bed_ch
+      val(reg)
 
     output:
       path '*'
