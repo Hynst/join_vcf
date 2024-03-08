@@ -70,7 +70,7 @@ process JOIN_GVCF {
     
     input:
       file comb_gvcf
-      tuple val(reg) val(bed)
+      tuple val(reg), val(bed)
 
     output:
       path '*'
@@ -92,7 +92,7 @@ process VAR_RECALL {
     
     input:
       file genotype_gvcf
-      tuple val(reg) val(bed)
+      tuple val(reg), val(bed)
 
     output:
       path '*'
@@ -122,7 +122,7 @@ process APPLY_RECALL {
     
     input:
       file recall_gvcf
-      tuple val(reg) val(bed)
+      tuple val(reg), val(bed)
 
     output:
       path '*'
