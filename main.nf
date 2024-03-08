@@ -30,33 +30,33 @@ process HAPLOTYPECALLER_GVCF {
 process COMBINE_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
 
-    publishDir "${params.pubdir}/results/combine_vcf", mode: 'copy'
+    publishDir "${params.pubdir}/results/combine_vcf/", mode: 'copy'
     container 'broadinstitute/gatk:4.2.3.0'
     cpus 2
     memory 10.GB
 
-    //input:
-    //  path vcf_list
+    input:
+      tuple val(reg), val(bed)
 
     output:
-      path './acgt_database'
+      path "./${reg}_acgt_database"
 
     script:
 
       """
-      for i in `ls ${params.pubdir}/results/HC/*gz | xargs -n1 basename`
+      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 2 | xargs -n1 basename`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
 
       gatk --java-options "-Xmx4g -Xms4g -XX:ParallelGCThreads=2" \
         GenomicsDBImport \
-        --genomicsdb-workspace-path ./acgt_database \
+        --genomicsdb-workspace-path ./${reg}_acgt_database \
         --batch-size 1 \
         --genomicsdb-shared-posixfs-optimizations \
         --merge-input-intervals \
         --sample-name-map samples.names \
-        --L $params.interval \
+        --L ${bed} \
         --tmp-dir . \
         --reader-threads 2
       """
@@ -69,7 +69,8 @@ process JOIN_GVCF {
     container 'broadinstitute/gatk:4.1.3.0'
     
     input:
-      val combined_vcf
+      file comb_gvcf
+      val(reg) from bed_ch
 
     output:
       path '*'
@@ -78,8 +79,8 @@ process JOIN_GVCF {
       """
       gatk --java-options "-Xms4g -Xmx4g -XX:ParallelGCThreads=2" GenotypeGVCFs \
       -R $params.ref \
-      -V gendb://${params.pubdir}/results/combine_vcf/acgt_database \
-      -O ACGT_joint.vcf.gz
+      -V gendb://${params.pubdir}/results/combine_vcf/${reg}_acgt_database \
+      -O ${reg}_ACGT_joint.vcf.gz
       """
 }
 
@@ -91,6 +92,7 @@ process VAR_RECALL {
     
     input:
       file genotype_gvcf
+      val(reg) from bed_ch
 
     output:
       path '*'
@@ -99,16 +101,16 @@ process VAR_RECALL {
       """
       gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" VariantRecalibrator \
         -R $params.ref \
-        -V ACGT_joint.vcf.gz \
+        -V ${reg}_ACGT_joint.vcf.gz \
         --resource:hapmap,known=false,training=true,truth=true,prior=15.0 ${params.annot}/hapmap_3.3.hg38.vcf.gz \
         --resource:omni,known=false,training=true,truth=false,prior=12.0 ${params.annot}/1000G_omni2.5.hg38.vcf.gz \
         --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
         --resource:dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.annot}/dbsnp_146.hg38.vcf.gz \
         -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
         -mode SNP \
-        -O ACGT_variants.recal \
-        --tranches-file ACGT_variants.tranches \
-        --rscript-file ACGT_variants.plots.R
+        -O ${reg}_ACGT_variants.recal \
+        --tranches-file ${reg}_ACGT_variants.tranches \
+        --rscript-file ${reg}_ACGT_variants.plots.R
       """
 }
 
@@ -120,6 +122,7 @@ process APPLY_RECALL {
     
     input:
       file recall_gvcf
+      val(reg) from bed_ch
 
     output:
       path '*'
@@ -128,8 +131,8 @@ process APPLY_RECALL {
       """
        gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" ApplyVQSR \
         -R $params.ref \
-        -V ${params.pubdir}/results/join_vcf/ACGT_joint.vcf.gz \
-        -O ACGT_variants_recall.vcf.gz \
+        -V ${params.pubdir}/results/join_vcf/${reg}_ACGT_joint.vcf.gz \
+        -O ${reg}_ACGT_variants_recall.vcf.gz \
         --tranches-file ACGT_variants.tranches \
         --recal-file ACGT_variants.recal \
         -mode SNP
@@ -141,15 +144,18 @@ workflow {
     //input_ch = Channel.empty()
     //tsv = file(params.input)
     //input_ch = extractFastq(tsv)
-    //input_ch = Channel.fromPath('/mnt2/shared/ACGT/join_VC/input/HaplotypeCaller_ACGT00{1,2}.vcf.gz').view()
 
     // execute workflow
     //vcf = HAPLOTYPECALLER_GVCF(input_ch)
     //batch_vcf = vcf.collect()
-    comb_gvcf = COMBINE_GVCF()
-    genotypegvcf = JOIN_GVCF(comb_gvcf)
-    var_recall_model = VAR_RECALL(genotypegvcf)
-    APPLY_RECALL(var_recall_model)
+    bed_ch = Channel.empty()
+    int_tsv = file(params.interval)
+    bed_ch = extractBeds(int_tsv)
+
+    comb_gvcf = COMBINE_GVCF(bed_ch)
+    genotypegvcf = JOIN_GVCF(comb_gvcf, bed_ch)
+    var_recall_model = VAR_RECALL(genotypegvcf, bed_ch)
+    APPLY_RECALL(var_recall_model, bed_ch)
 }
 
 def returnFile(it) {
@@ -166,5 +172,16 @@ def extractFastq(tsvFile) {
             def bai       = returnFile(row[2])
 
             [sample, bam, bai]
+        }
+}
+
+def extractBeds(tsvFile) {
+    Channel.from(tsvFile)
+        .splitCsv(sep: '\t')
+        .map { row ->           
+            def reg    = row[0]
+            def bed       = returnFile(row[1])
+
+            [reg, bed]
         }
 }
