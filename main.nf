@@ -154,8 +154,8 @@ workflow {
 
     comb_gvcf = COMBINE_GVCF(bed_ch)
     genotypegvcf = JOIN_GVCF(comb_gvcf.collect(), bed_ch)
-    var_recall_model = VAR_RECALL(genotypegvcf, bed_ch)
-    APPLY_RECALL(var_recall_model, bed_ch)
+    var_recall_model = VAR_RECALL(genotypegvcf.collect(), bed_ch)
+    APPLY_RECALL(var_recall_model.collect(), bed_ch)
 }
 
 def returnFile(it) {
