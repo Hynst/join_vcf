@@ -92,7 +92,7 @@ process VAR_RECALL {
     
     input:
       file genotype_gvcf
-      val(reg) from bed_ch
+      val(reg)
 
     output:
       path '*'
@@ -122,7 +122,7 @@ process APPLY_RECALL {
     
     input:
       file recall_gvcf
-      val(reg) from bed_ch
+      val(reg)
 
     output:
       path '*'
