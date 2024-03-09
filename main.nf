@@ -44,7 +44,7 @@ process COMBINE_GVCF {
     script:
 
       """
-      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 2 | xargs -n1 basename`
+      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 10 | xargs -n1 basename`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
@@ -52,7 +52,7 @@ process COMBINE_GVCF {
       gatk --java-options "-Xmx4g -Xms4g -XX:ParallelGCThreads=2" \
         GenomicsDBImport \
         --genomicsdb-workspace-path ./${reg}_acgt_database \
-        --batch-size 1 \
+        --batch-size 5 \
         --genomicsdb-shared-posixfs-optimizations \
         --merge-input-intervals \
         --sample-name-map samples.names \
