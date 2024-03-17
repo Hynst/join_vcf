@@ -73,7 +73,7 @@ process JOIN_GVCF {
       tuple val(reg), val(bed)
 
     output:
-      path '*'
+      path '${reg}_ACGT_joint.vcf.gz'
 
     script:
       """
@@ -95,7 +95,7 @@ process VAR_RECALL {
       tuple val(reg), val(bed)
 
     output:
-      path '*'
+      path '${reg}_ACGT_*'
 
     script:
       """
@@ -126,7 +126,7 @@ process APPLY_RECALL {
       tuple val(reg), val(bed)
 
     output:
-      path '*'
+      path '${reg}_ACGT_variants*'
 
     script:
       """
@@ -134,8 +134,8 @@ process APPLY_RECALL {
         -R $params.ref \
         -V ${params.pubdir}/results/join_vcf/${reg}_ACGT_joint.vcf.gz \
         -O ${reg}_ACGT_variants_recall.vcf.gz \
-        --tranches-file ACGT_variants.tranches \
-        --recal-file ACGT_variants.recal \
+        --tranches-file ${reg}_ACGT_variants.tranches \
+        --recal-file ${reg}_ACGT_variants.recal \
         -mode SNP
       """
 }
