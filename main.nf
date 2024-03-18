@@ -73,7 +73,7 @@ process JOIN_GVCF {
       tuple val(reg), val(bed)
 
     output:
-      path '${reg}_ACGT_joint.vcf.gz'
+      path "${reg}_ACGT_joint.vcf.gz"
 
     script:
       """
@@ -95,7 +95,7 @@ process VAR_RECALL {
       tuple val(reg), val(bed)
 
     output:
-      path '${reg}_ACGT_*'
+      path "${reg}_ACGT_*"
 
     script:
       """
@@ -126,7 +126,7 @@ process APPLY_RECALL {
       tuple val(reg), val(bed)
 
     output:
-      path '${reg}_ACGT_variants*'
+      path "${reg}_ACGT_variants*"
 
     script:
       """
