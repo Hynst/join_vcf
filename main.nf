@@ -39,7 +39,7 @@ process COMBINE_GVCF {
       tuple val(reg), val(bed)
 
     output:
-      path "./${reg}_acgt_database"
+      tuple val(reg), file("./${reg}_acgt_database")
 
     script:
 
@@ -69,17 +69,16 @@ process JOIN_GVCF {
     container 'broadinstitute/gatk:4.2.3.0'
     
     input:
-      file comb_gvcf
-      tuple val(reg), val(bed)
+      tuple val(reg), file(db)
 
     output:
-      path "${reg}_ACGT_joint*"
+      tuple val(reg), path("${reg}_ACGT_joint*")
 
     script:
       """
       gatk --java-options "-Xms4g -Xmx4g -XX:ParallelGCThreads=2" GenotypeGVCFs \
       -R $params.ref \
-      -V gendb://${params.pubdir}/results/combine_vcf/${reg}_acgt_database \
+      -V gendb://${params.pubdir}/results/combine_vcf/${db} \
       -O ${reg}_ACGT_joint.vcf.gz
       """
 }
@@ -91,17 +90,16 @@ process VAR_RECALL {
     container 'broadinstitute/gatk:4.2.3.0'
     
     input:
-      file genotype_gvcf
-      tuple val(reg), val(bed)
+      tuple val(reg), file(vcf)
 
     output:
-      path "${reg}_ACGT_*"
+      tuple val(reg), path("${reg}_ACGT_*")
 
     script:
       """
       gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" VariantRecalibrator \
         -R $params.ref \
-        -V ${reg}_ACGT_joint.vcf.gz \
+        -V ${vcf} \
         --resource:hapmap,known=false,training=true,truth=true,prior=15.0 ${params.annot}/hapmap_3.3.hg38.vcf.gz \
         --resource:omni,known=false,training=true,truth=false,prior=12.0 ${params.annot}/1000G_omni2.5.hg38.vcf.gz \
         --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
@@ -122,8 +120,7 @@ process APPLY_RECALL {
     container 'broadinstitute/gatk:4.2.3.0'
     
     input:
-      file recall_gvcf
-      tuple val(reg), val(bed)
+      tuple val(reg), file(recal)
 
     output:
       path "${reg}_ACGT_variants*"
@@ -132,7 +129,7 @@ process APPLY_RECALL {
       """
        gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" ApplyVQSR \
         -R $params.ref \
-        -V ${params.pubdir}/results/join_vcf/${reg}_ACGT_joint.vcf.gz \
+        -V ${recal} \
         -O ${reg}_ACGT_variants_recall.vcf.gz \
         --tranches-file ${reg}_ACGT_variants.tranches \
         --recal-file ${reg}_ACGT_variants.recal \
