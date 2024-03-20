@@ -5,7 +5,7 @@
 process HAPLOTYPECALLER_GVCF {
 
     publishDir "${params.pubdir}/results/HC", mode: 'copy'
-    container 'broadinstitute/gatk:4.1.3.0'
+    container 'broadinstitute/gatk:4.5.0.0'
     cpus 2
     memory 22.GB
 
@@ -31,7 +31,7 @@ process COMBINE_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
 
     publishDir "${params.pubdir}/results/combine_vcf/", mode: 'copy'
-    container 'broadinstitute/gatk:4.2.3.0'
+    container 'broadinstitute/gatk:4.5.0.0'
     cpus 2
     memory 10.GB
 
@@ -66,7 +66,7 @@ process JOIN_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs
 
     publishDir "${params.pubdir}/results/join_vcf/", mode: 'copy'
-    container 'broadinstitute/gatk:4.2.3.0'
+    container 'broadinstitute/gatk:4.5.0.0'
     
     input:
       tuple val(reg), file(db)
@@ -87,7 +87,7 @@ process VAR_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
 
     publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
-    container 'broadinstitute/gatk:4.2.3.0'
+    container 'broadinstitute/gatk:4.5.0.0'
     
     input:
       tuple val(reg), file(vcf)
@@ -117,7 +117,7 @@ process APPLY_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360037056912-ApplyVQSR
 
     publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
-    container 'broadinstitute/gatk:4.2.3.0'
+    container 'broadinstitute/gatk:4.5.0.0'
     
     input:
       tuple val(reg), file(recal)
