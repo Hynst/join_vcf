@@ -44,7 +44,7 @@ process COMBINE_GVCF {
     script:
 
       """
-      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 100 | xargs -n1 basename`
+      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 10 | xargs -n1 basename`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
@@ -72,7 +72,7 @@ process JOIN_GVCF {
       tuple val(reg), file(db)
 
     output:
-      tuple val(reg), path("${reg}_ACGT_joint*")
+      path "${reg}_ACGT_joint*"
 
     script:
       """
@@ -83,44 +83,70 @@ process JOIN_GVCF {
       """
 }
 
+process MERGE_VCFS {
+    // https://gatk.broadinstitute.org/hc/en-us/articles/360036713331-MergeVcfs-Picard
+
+    publishDir "${params.pubdir}/results/merged_vcf/", mode: 'copy'
+    container 'broadinstitute/gatk:4.2.3.0'
+
+    input:
+      file joint_vcf
+
+    output:
+      path 'ACGT_joint_merged.vcf.gz'
+
+    script:
+      """
+      for file in `ls ${params.pubdir}/results/join_vcf`
+      do
+        echo ${params.pubdir}/results/join_vcf/\${file}
+      done > jointVCFS_files.list
+
+      java -jar picard.jar MergeVcfs \
+      I=jointVCFS_files.list \
+      O=ACGT_joint_merged.vcf.gz
+      """
+
+}
+
 process VAR_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
 
-    publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
+    publishDir "${params.pubdir}/results/model/", mode: 'copy'
     container 'broadinstitute/gatk:4.2.3.0'
     
     input:
-      tuple val(reg), file(vcf)
+      file merged_vcf
 
     output:
-      tuple val(reg), path("${reg}_ACGT_*")
+      path 'ACGT_*'
 
     script:
       """
       gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" VariantRecalibrator \
         -R $params.ref \
-        -V ${reg}_ACGT_joint.vcf.gz \
+        -V ${merged_vcf} \
         --resource:hapmap,known=false,training=true,truth=true,prior=15.0 ${params.annot}/hapmap_3.3.hg38.vcf.gz \
         --resource:omni,known=false,training=true,truth=false,prior=12.0 ${params.annot}/1000G_omni2.5.hg38.vcf.gz \
         --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
         --resource:dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.annot}/dbsnp_146.hg38.vcf.gz \
         -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
-        --max-gaussians 2 \
+        --max-gaussians 4 \
         -mode SNP \
-        -O ${reg}_ACGT_variants.recal \
-        --tranches-file ${reg}_ACGT_variants.tranches \
-        --rscript-file ${reg}_ACGT_variants.plots.R
+        -O ACGT_variants.recal \
+        --tranches-file ACGT_variants.tranches \
+        --rscript-file ACGT_variants.plots.R
       """
 }
 
 process APPLY_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360037056912-ApplyVQSR
 
-    publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
+    publishDir "${params.pubdir}/results/recal/", mode: 'copy'
     container 'broadinstitute/gatk:4.2.3.0'
     
     input:
-      tuple val(reg), file(recal)
+      file recal
 
     output:
       path("${reg}_ACGT_variants*")
@@ -129,10 +155,10 @@ process APPLY_RECALL {
       """
        gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" ApplyVQSR \
         -R $params.ref \
-        -V ${reg}_ACGT_variants.recal \
-        -O ${reg}_ACGT_variants_recall.vcf.gz \
-        --tranches-file ${reg}_ACGT_variants.tranches \
-        --recal-file ${reg}_ACGT_variants.recal \
+        -V ACGT_joint_merged.vcf.gz \
+        -O ACGT_variants_recall.vcf.gz \
+        --tranches-file ACGT_variants.tranches \
+        --recal-file ACGT_variants.recal \
         -mode SNP
       """
 }
@@ -152,7 +178,8 @@ workflow {
 
     comb_gvcf = COMBINE_GVCF(bed_ch)
     genotypegvcf = JOIN_GVCF(comb_gvcf)
-    var_recall_model = VAR_RECALL(genotypegvcf)
+    merged_vcfs = MERGE_VCFS(genotypegvcf.collect())
+    var_recall_model = VAR_RECALL(merged_vcfs)
     APPLY_RECALL(var_recall_model)
 }
 
