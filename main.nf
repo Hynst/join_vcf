@@ -104,7 +104,7 @@ process VAR_RECALL {
         --resource:omni,known=false,training=true,truth=false,prior=12.0 ${params.annot}/1000G_omni2.5.hg38.vcf.gz \
         --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
         --resource:dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.annot}/dbsnp_146.hg38.vcf.gz \
-        -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
+        -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
         --max-gaussians 3 \
         -mode SNP \
         -O ${reg}_ACGT_variants.recal \
