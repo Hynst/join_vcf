@@ -44,7 +44,7 @@ process COMBINE_GVCF {
     script:
 
       """
-      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 30 | xargs -n1 basename`
+      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 15 | xargs -n1 basename`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
@@ -78,7 +78,7 @@ process JOIN_GVCF {
       """
       gatk --java-options "-Xms4g -Xmx4g -XX:ParallelGCThreads=2" GenotypeGVCFs \
       -R $params.ref \
-      -V gendb://${params.pubdir}/results/combine_vcf/${db} \
+      -V gendb://${reg}_acgt_database \
       -O ${reg}_ACGT_joint.vcf.gz
       """
 }
@@ -99,7 +99,7 @@ process VAR_RECALL {
       """
       gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" VariantRecalibrator \
         -R $params.ref \
-        -V ${vcf} \
+        -V ${reg}_ACGT_joint.vcf.gz \
         --resource:hapmap,known=false,training=true,truth=true,prior=15.0 ${params.annot}/hapmap_3.3.hg38.vcf.gz \
         --resource:omni,known=false,training=true,truth=false,prior=12.0 ${params.annot}/1000G_omni2.5.hg38.vcf.gz \
         --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
@@ -123,13 +123,13 @@ process APPLY_RECALL {
       tuple val(reg), file(recal)
 
     output:
-      path "${reg}_ACGT_variants*"
+      path("${reg}_ACGT_variants*")
 
     script:
       """
        gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" ApplyVQSR \
         -R $params.ref \
-        -V ${recal} \
+        -V ${reg}_ACGT_variants.recal \
         -O ${reg}_ACGT_variants_recall.vcf.gz \
         --tranches-file ${reg}_ACGT_variants.tranches \
         --recal-file ${reg}_ACGT_variants.recal \
@@ -151,9 +151,9 @@ workflow {
     bed_ch = extractBeds(int_tsv)
 
     comb_gvcf = COMBINE_GVCF(bed_ch)
-    genotypegvcf = JOIN_GVCF(comb_gvcf.collect(), bed_ch)
-    var_recall_model = VAR_RECALL(genotypegvcf.collect(), bed_ch)
-    APPLY_RECALL(var_recall_model.collect(), bed_ch)
+    genotypegvcf = JOIN_GVCF(comb_gvcf)
+    var_recall_model = VAR_RECALL(genotypegvcf)
+    APPLY_RECALL(var_recall_model)
 }
 
 def returnFile(it) {
