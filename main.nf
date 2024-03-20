@@ -5,7 +5,7 @@
 process HAPLOTYPECALLER_GVCF {
 
     publishDir "${params.pubdir}/results/HC", mode: 'copy'
-    container 'broadinstitute/gatk:4.5.0.0'
+    container 'broadinstitute/gatk:4.2.3.0'
     cpus 2
     memory 22.GB
 
@@ -31,7 +31,7 @@ process COMBINE_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport
 
     publishDir "${params.pubdir}/results/combine_vcf/", mode: 'copy'
-    container 'broadinstitute/gatk:4.5.0.0'
+    container 'broadinstitute/gatk:4.2.3.0'
     cpus 2
     memory 10.GB
 
@@ -66,7 +66,7 @@ process JOIN_GVCF {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs
 
     publishDir "${params.pubdir}/results/join_vcf/", mode: 'copy'
-    container 'broadinstitute/gatk:4.5.0.0'
+    container 'broadinstitute/gatk:4.2.3.0'
     
     input:
       tuple val(reg), file(db)
@@ -87,7 +87,7 @@ process VAR_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
 
     publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
-    container 'broadinstitute/gatk:4.5.0.0'
+    container 'broadinstitute/gatk:4.2.3.0'
     
     input:
       tuple val(reg), file(vcf)
@@ -104,7 +104,7 @@ process VAR_RECALL {
         --resource:omni,known=false,training=true,truth=false,prior=12.0 ${params.annot}/1000G_omni2.5.hg38.vcf.gz \
         --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
         --resource:dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.annot}/dbsnp_146.hg38.vcf.gz \
-        -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
+        -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
         --max-gaussians 3 \
         -mode SNP \
         -O ${reg}_ACGT_variants.recal \
@@ -117,7 +117,7 @@ process APPLY_RECALL {
     // https://gatk.broadinstitute.org/hc/en-us/articles/360037056912-ApplyVQSR
 
     publishDir "${params.pubdir}/results/filtered/", mode: 'copy'
-    container 'broadinstitute/gatk:4.5.0.0'
+    container 'broadinstitute/gatk:4.2.3.0'
     
     input:
       tuple val(reg), file(recal)
