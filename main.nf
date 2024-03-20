@@ -44,7 +44,7 @@ process COMBINE_GVCF {
     script:
 
       """
-      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 50 | xargs -n1 basename`
+      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 30 | xargs -n1 basename`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
@@ -52,7 +52,7 @@ process COMBINE_GVCF {
       gatk --java-options "-Xmx4g -Xms4g -XX:ParallelGCThreads=2" \
         GenomicsDBImport \
         --genomicsdb-workspace-path ./${reg}_acgt_database \
-        --batch-size 5 \
+        --batch-size 25 \
         --genomicsdb-shared-posixfs-optimizations \
         --merge-input-intervals \
         --sample-name-map samples.names \
@@ -73,7 +73,7 @@ process JOIN_GVCF {
       tuple val(reg), val(bed)
 
     output:
-      path "${reg}_ACGT_joint.vcf.gz"
+      path "${reg}_ACGT_joint*"
 
     script:
       """
@@ -107,7 +107,7 @@ process VAR_RECALL {
         --resource:1000G,known=false,training=true,truth=false,prior=10.0 ${params.annot}/1000G_phase1.snps.high_confidence.hg38.vcf.gz \
         --resource:dbsnp,known=true,training=false,truth=false,prior=2.0 ${params.annot}/dbsnp_146.hg38.vcf.gz \
         -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
-        --max-gaussians 4 \
+        --max-gaussians 3 \
         -mode SNP \
         -O ${reg}_ACGT_variants.recal \
         --tranches-file ${reg}_ACGT_variants.tranches \
