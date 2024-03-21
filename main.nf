@@ -102,9 +102,9 @@ process MERGE_VCFS {
         echo ${params.pubdir}/results/join_vcf/\${file}
       done > jointVCFS_files.list
 
-      java -jar picard.jar MergeVcfs \
-      I=jointVCFS_files.list \
-      O=ACGT_joint_merged.vcf.gz
+      gakt MergeVcfs \
+      -I jointVCFS_files.list \
+      -O ACGT_joint_merged.vcf.gz
       """
 }
 
