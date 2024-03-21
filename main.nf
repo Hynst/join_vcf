@@ -97,7 +97,7 @@ process MERGE_VCFS {
 
     script:
       """
-      for file in `ls ${params.pubdir}/results/join_vcf`
+      for file in `ls ${params.pubdir}/results/join_vcf/*vcf.gz`
       do
         echo ${params.pubdir}/results/join_vcf/\${file}
       done > jointVCFS_files.list
@@ -106,7 +106,6 @@ process MERGE_VCFS {
       I=jointVCFS_files.list \
       O=ACGT_joint_merged.vcf.gz
       """
-
 }
 
 process VAR_RECALL {
