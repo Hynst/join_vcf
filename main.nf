@@ -151,7 +151,7 @@ process APPLY_RECALL {
       file recal
 
     output:
-      path("${reg}_ACGT_variants*")
+      path 'ACGT_variants_recall.vcf.*'
 
     script:
       """
