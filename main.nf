@@ -93,7 +93,7 @@ process MERGE_VCFS {
       file joint_vcf
 
     output:
-      path 'ACGT_joint_merged.vcf.gz'
+      path 'ACGT_joint_merged.vcf*'
 
     script:
       """
