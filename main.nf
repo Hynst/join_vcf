@@ -157,7 +157,7 @@ process APPLY_RECALL {
       """
        gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" ApplyVQSR \
         -R $params.ref \
-        -V ACGT_joint_merged.vcf.gz \
+        -V ${params.pubdir}/results/join_vcf/ACGT_joint_merged.vcf.gz \
         -O ACGT_variants_recall.vcf.gz \
         --tranches-file ACGT_variants.tranches \
         --recal-file ACGT_variants.recal \
