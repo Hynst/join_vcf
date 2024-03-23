@@ -100,7 +100,7 @@ process MERGE_VCFS {
       touch jointVCFS_files.list
       for file in `ls ${params.pubdir}/results/join_vcf/*vcf.gz`
       do
-        gakt SortVcf -I \${file} -O \${file%.vcf.gz}_sorted.vcf.gz -SD ${params.dict}
+        gatk SortVcf -I \${file} -O \${file%.vcf.gz}_sorted.vcf.gz -SD ${params.dict}
         echo \${file%.vcf.gz}_sorted.vcf.gz >> jointVCFS_files.list
       done
 
