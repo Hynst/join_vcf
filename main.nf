@@ -97,10 +97,12 @@ process MERGE_VCFS {
 
     script:
       """
+      touch jointVCFS_files.list
       for file in `ls ${params.pubdir}/results/join_vcf/*vcf.gz`
       do
-        echo \${file}
-      done > jointVCFS_files.list
+        gakt SortVcf -I \${file} -O \{file%.vcf.gz}_sorted.vcf.gz -SD ${params.dict}
+        echo \{file%.vcf.gz}_sorted.vcf.gz >> jointVCFS_files.list
+      done
 
       gatk MergeVcfs \
       -I jointVCFS_files.list \
