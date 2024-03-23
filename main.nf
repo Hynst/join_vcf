@@ -99,12 +99,13 @@ process MERGE_VCFS {
       """
       for file in `ls ${params.pubdir}/results/join_vcf/*vcf.gz`
       do
-        echo ${params.pubdir}/results/join_vcf/\${file}
+        echo \${file}
       done > jointVCFS_files.list
 
-      gakt MergeVcfs \
+      gatk MergeVcfs \
       -I jointVCFS_files.list \
-      -O ACGT_joint_merged.vcf.gz
+      -O ACGT_joint_merged.vcf.gz \
+      -D ${params.dict}
       """
 }
 
