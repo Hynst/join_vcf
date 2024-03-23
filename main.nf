@@ -44,7 +44,7 @@ process COMBINE_GVCF {
     script:
 
       """
-      for i in `ls ${params.pubdir}/results/HC/*gz | head -n 10 | xargs -n1 basename`
+      for i in `ls ${params.pubdir}/results/HC/*gz | xargs -n1 basename`
       do
         awk -v id="\${i%.g.vcf.gz}" -v vcf="\$i" -v dir="${params.pubdir}" 'BEGIN{print id, dir "results/HC/" vcf}' | sed 's/ /\t/g' >> samples.names
       done
