@@ -179,7 +179,7 @@ workflow {
     //bed_ch = extractBeds(int_tsv)
     com_ch = Channel.empty()
     com_tsv = file(params.interval)
-    com_ch = extractComDB(int_tsv)
+    com_ch = extractComDB(com_tsv)
 
 
     //comb_gvcf = COMBINE_GVCF(bed_ch)
