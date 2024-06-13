@@ -69,7 +69,7 @@ process JOIN_GVCF {
     container 'broadinstitute/gatk:4.2.3.0'
     
     input:
-      tuple val(reg), file(db)
+      tuple val(db), val(reg)
 
     output:
       path "${reg}_ACGT_joint*"
@@ -78,7 +78,7 @@ process JOIN_GVCF {
       """
       gatk --java-options "-Xms4g -Xmx4g -XX:ParallelGCThreads=2" GenotypeGVCFs \
       -R $params.ref \
-      -V gendb://${reg}_acgt_database \
+      -V gendb://${db} \
       -O ${reg}_ACGT_joint.vcf.gz
       """
 }
@@ -174,12 +174,16 @@ workflow {
     // execute workflow
     //vcf = HAPLOTYPECALLER_GVCF(input_ch)
     //batch_vcf = vcf.collect()
-    bed_ch = Channel.empty()
-    int_tsv = file(params.interval)
-    bed_ch = extractBeds(int_tsv)
+    //bed_ch = Channel.empty()
+    //int_tsv = file(params.interval)
+    //bed_ch = extractBeds(int_tsv)
+    com_ch = Channel.empty()
+    com_tsv = file(params.interval)
+    com_ch = extractComDB(int_tsv)
 
-    comb_gvcf = COMBINE_GVCF(bed_ch)
-    genotypegvcf = JOIN_GVCF(comb_gvcf)
+
+    //comb_gvcf = COMBINE_GVCF(bed_ch)
+    genotypegvcf = JOIN_GVCF(com_ch)
     merged_vcfs = MERGE_VCFS(genotypegvcf.collect())
     var_recall_model = VAR_RECALL(merged_vcfs)
     APPLY_RECALL(var_recall_model)
@@ -210,5 +214,17 @@ def extractBeds(tsvFile) {
             def bed       = returnFile(row[1])
 
             [reg, bed]
+        }
+}
+
+
+def extractComDB(tsvFile) {
+    Channel.from(tsvFile)
+        .splitCsv(sep: '\t')
+        .map { row ->
+            def db    = row[0]
+            def reg   = row[1]
+
+            [db, reg]
         }
 }
