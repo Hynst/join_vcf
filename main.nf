@@ -69,7 +69,7 @@ process JOIN_GVCF {
     container 'broadinstitute/gatk:4.2.3.0'
     
     input:
-      tuple val(db), val(reg)
+      tuple val(reg), file(db)
 
     output:
       path "${reg}_ACGT_joint*"
@@ -174,15 +174,15 @@ workflow {
     // execute workflow
     //vcf = HAPLOTYPECALLER_GVCF(input_ch)
     //batch_vcf = vcf.collect()
-    //bed_ch = Channel.empty()
-    //int_tsv = file(params.interval)
-    //bed_ch = extractBeds(int_tsv)
-    com_ch = Channel.empty()
-    com_tsv = file(params.interval)
-    com_ch = extractComDB(com_tsv)
+    bed_ch = Channel.empty()
+    int_tsv = file(params.interval)
+    bed_ch = extractBeds(int_tsv)
+    //com_ch = Channel.empty()
+    //com_tsv = file(params.interval)
+    //com_ch = extractComDB(com_tsv)
 
 
-    //comb_gvcf = COMBINE_GVCF(bed_ch)
+    comb_gvcf = COMBINE_GVCF(bed_ch)
     genotypegvcf = JOIN_GVCF(com_ch)
     merged_vcfs = MERGE_VCFS(genotypegvcf.collect())
     var_recall_model = VAR_RECALL(merged_vcfs)
