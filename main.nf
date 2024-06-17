@@ -183,7 +183,7 @@ workflow {
 
 
     comb_gvcf = COMBINE_GVCF(bed_ch)
-    genotypegvcf = JOIN_GVCF(com_ch)
+    genotypegvcf = JOIN_GVCF(comb_gvcf)
     merged_vcfs = MERGE_VCFS(genotypegvcf.collect())
     var_recall_model = VAR_RECALL(merged_vcfs)
     APPLY_RECALL(var_recall_model)
