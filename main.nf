@@ -97,11 +97,12 @@ process MERGE_VCFS {
 
     script:
       """
+      # toto je cele kokotske ale nechtelo se mi pridavat rule
       touch jointVCFS_files.list
-      for file in `ls ${params.pubdir}/results/join_vcf/*vcf.gz`
+      for file in `ls ${params.pubdir}/results/join_vcf/*_ACGT_joint.vcf.gz`
       do
-        gatk SortVcf -I \${file} -O \${file%.vcf.gz}_sorted.vcf.gz -SD ${params.dict}
-        echo \${file%.vcf.gz}_sorted.vcf.gz >> jointVCFS_files.list
+          gatk --java-options "-Xms40g -Xmx40g" SortVcf -I \${file} -O \${file%.vcf.gz}_sorted.vcf.gz -SD ${params.dict}
+          echo \${file%.vcf.gz}_sorted.vcf.gz >> jointVCFS_files.list
       done
 
       gatk MergeVcfs \
@@ -125,7 +126,7 @@ process VAR_RECALL {
 
     script:
       """
-      gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" VariantRecalibrator \
+      gatk --java-options "-Xms30G -Xmx30G -XX:ParallelGCThreads=2" VariantRecalibrator \
         -R $params.ref \
         -V ACGT_joint_merged.vcf.gz \
         --resource:hapmap,known=false,training=true,truth=true,prior=15.0 ${params.annot}/hapmap_3.3.hg38.vcf.gz \
@@ -155,7 +156,7 @@ process APPLY_RECALL {
 
     script:
       """
-       gatk --java-options "-Xms4G -Xmx4G -XX:ParallelGCThreads=2" ApplyVQSR \
+       gatk --java-options "-Xms30G -Xmx30G -XX:ParallelGCThreads=2" ApplyVQSR \
         -R $params.ref \
         -V ${params.pubdir}/results/merged_vcf/ACGT_joint_merged.vcf.gz \
         -O ACGT_variants_recall.vcf.gz \
